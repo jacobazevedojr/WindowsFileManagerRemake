@@ -15,6 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+// Test
 public class App extends JFrame {
 	// Panels
 	JPanel panel;
