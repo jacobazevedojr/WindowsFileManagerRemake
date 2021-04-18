@@ -37,7 +37,7 @@ public class App extends JFrame {
 	JDesktopPane desktop;
 	
 	// File Manager
-	//FileManagerFrame myf, myf2;
+	FileManagerFrame myf, myf2;
 	
 	String currentDrive;
 	
@@ -48,15 +48,17 @@ public class App extends JFrame {
 		// Initialize top panel
 		northPanel = new JPanel();
 		
-		// Buttons
-		ok = new JButton("Okay");		
-		bye = new JButton("Bye");
-		
 		// Menu
 		menu = new JMenuBar();
 		
 		// Status
 		statusbar = new JToolBar();
+		
+		// Desktop
+		desktop = new JDesktopPane();
+		
+		// File Manager Frame
+		myf = new FileManagerFrame();
 	}
 	
 	public void go()
@@ -67,16 +69,22 @@ public class App extends JFrame {
 		northPanel.setLayout(new BorderLayout());
 
 		// Add Components
-		// Adds button into panel
 		buildMenu();
 		northPanel.add(menu, BorderLayout.NORTH);
 		buildToolbar();
 		//northPanel.add(toolbar, BorderLayout.SOUTH);
 		
+		// Desktop
+		panel.add(desktop, BorderLayout.CENTER);
+		desktop.add(myf);
+		
 		panel.add(northPanel, BorderLayout.NORTH);
+		
+		// Status Bar
 		buildStatusBar();
 		panel.add(statusbar, BorderLayout.SOUTH);
-		//panel.add(desktop, BorderLayout.CENTER);
+		
+		// Panel into JFrame
 		this.add(panel);
 		
 		// Properties of JFrame
