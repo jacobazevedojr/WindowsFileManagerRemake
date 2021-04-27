@@ -12,7 +12,6 @@ public class FileManagerFrame extends JInternalFrame
 	{
 		splitpane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new DirPanel(), new FilePanel());
 		splitpane.revalidate();
-		splitpane.setResizeWeight(1.0);
 		
 		this.setSize(400, 400);
 		this.setVisible(true);

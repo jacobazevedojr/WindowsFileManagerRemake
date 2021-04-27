@@ -1,5 +1,6 @@
 package WFM;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 
@@ -13,12 +14,12 @@ public class FilePanel extends JPanel{
 	
 	FilePanel()
 	{
-		this.setLayout(new FlowLayout(FlowLayout.LEFT));
-		dirTree.setPreferredSize(new Dimension(1000, 0));
+		this.setLayout(new BorderLayout());
+		dirTree.setPreferredSize(new Dimension(100, 500));
 		sp.setViewportView(dirTree);
-		this.add(sp);
+		this.add(sp, BorderLayout.CENTER);
 		
-		Dimension minimum = new Dimension(150, 0);
+		Dimension minimum = new Dimension(100, 0);
 		this.setMinimumSize(minimum);
 	}
 }
