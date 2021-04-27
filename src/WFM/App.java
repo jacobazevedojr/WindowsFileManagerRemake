@@ -13,6 +13,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 
 // Test
@@ -36,7 +37,7 @@ public class App extends JFrame {
 	// Desktop Pane
 	JDesktopPane desktop;
 	
-	// File Manager
+	// File Manager (Internal Frames)
 	FileManagerFrame myf, myf2;
 	
 	String currentDrive;
@@ -59,6 +60,7 @@ public class App extends JFrame {
 		
 		// File Manager Frame
 		myf = new FileManagerFrame();
+		
 	}
 	
 	public void go()
@@ -76,6 +78,8 @@ public class App extends JFrame {
 		
 		// Desktop
 		panel.add(desktop, BorderLayout.CENTER);
+		
+		// Internal Frames
 		desktop.add(myf);
 		
 		panel.add(northPanel, BorderLayout.NORTH);
