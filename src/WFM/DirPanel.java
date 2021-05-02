@@ -11,9 +11,11 @@ import javax.swing.JTree;
 public class DirPanel extends JPanel{
 	private JScrollPane sp = new JScrollPane();
 	private JTree dirTree = new JTree();
+	private FileTree root;
 	
-	DirPanel()
+	DirPanel(JTree tree)
 	{
+		dirTree = tree;
 		this.setLayout(new BorderLayout());
 		dirTree.setPreferredSize(new Dimension(150, 500));
 		

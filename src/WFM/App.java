@@ -15,6 +15,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 
 // Test
 public class App extends JFrame {
@@ -59,8 +61,7 @@ public class App extends JFrame {
 		desktop = new JDesktopPane();
 		
 		// File Manager Frame
-		myf = new FileManagerFrame();
-		
+		myf = new FileManagerFrame("C:\\");
 	}
 	
 	public void go()
