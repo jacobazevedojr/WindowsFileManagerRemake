@@ -15,3 +15,5 @@
 /FilePanel.class
 /FileNode.class
 /FileManagerFrame$TreeSL.class
+/FileManagerFrame$DirTreeSL.class
+/FileManagerFrame$FileTreeSL.class

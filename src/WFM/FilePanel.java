@@ -10,13 +10,14 @@ import javax.swing.JTree;
 
 public class FilePanel extends JPanel{
 	private JScrollPane sp = new JScrollPane();
-	private JTree dirTree = new JTree();
+	private JTree fileTree;
 	
-	FilePanel()
+	FilePanel(JTree fTree)
 	{
+		fileTree = fTree;
 		this.setLayout(new BorderLayout());
-		dirTree.setPreferredSize(new Dimension(100, 500));
-		sp.setViewportView(dirTree);
+		fileTree.setPreferredSize(new Dimension(100, 500));
+		sp.setViewportView(fileTree);
 		this.add(sp, BorderLayout.CENTER);
 		
 		Dimension minimum = new Dimension(100, 0);

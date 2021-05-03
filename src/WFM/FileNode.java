@@ -6,10 +6,12 @@ import java.util.ArrayList;
 public class FileNode {
 	private File file;
 	private ArrayList<FileNode> fileChildren;
+	private boolean explored;
 	FileNode(File f)
 	{
 		file = f;
 		fileChildren = new ArrayList<FileNode>();
+		explored = false;
 	}
 	
 	public File getFile()
@@ -31,6 +33,16 @@ public class FileNode {
 		}
 		
 		return file.getName();
+	}
+	
+	public void setExplored()
+	{
+		explored = true;
+	}
+	
+	public boolean isExplored()
+	{
+		return explored;
 	}
 	
 	public boolean isDirectory()
