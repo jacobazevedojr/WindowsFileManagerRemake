@@ -1,7 +1,9 @@
 package WFM;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -20,6 +22,7 @@ public class FileManagerFrame extends JInternalFrame
 	private FileTree fileTree;
 	private JTree dirTree;
 	private JTree fTree;
+	private DefaultMutableTreeNode fileRoot;
 	public FileManagerFrame(String root)
 	{
 		fileTree = new FileTree(root);
@@ -28,7 +31,7 @@ public class FileManagerFrame extends JInternalFrame
 		dirTree.addTreeSelectionListener(new DirTreeSL());
 		
 		// Build new fileTree w/ DMTN
-		DefaultMutableTreeNode fileRoot = buildFileNodes(fileTree.getRoot());
+		fileRoot = buildFileNodes(fileTree.getRoot());
 		fTree = buildTree(fileRoot);
 		fTree.addTreeSelectionListener(new FileTreeSL());
 		
@@ -45,6 +48,23 @@ public class FileManagerFrame extends JInternalFrame
 		
 		// Adding SplitPane
 		this.getContentPane().add(splitpane);
+	}
+	
+	public void simpleFormat()
+	{
+		fileRoot.getChildCount()
+		((FileNode) fileRoot.getUserObject())
+		for 
+	}
+	
+	public void detailedFormat()
+	{
+		
+	}
+	
+	private FileManagerFrame getThis()
+	{
+		return this;
 	}
 	
 	private JTree buildTree(DefaultMutableTreeNode root)
@@ -118,6 +138,9 @@ public class FileManagerFrame extends JInternalFrame
 				
 				DefaultMutableTreeNode newFileNode = buildFileNodes(node);
 				updateFileTree(newFileNode);
+				
+				// Update the title of the FileManagerFrame
+				getThis().setTitle(((FileNode) node.getUserObject()).getFile().getAbsolutePath());
 			}
 		}
 	}
@@ -128,6 +151,20 @@ public class FileManagerFrame extends JInternalFrame
 		public void valueChanged(TreeSelectionEvent e)
 		{
 			// Should allow for executions
+			Desktop desktop = Desktop.getDesktop();
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) fTree.getLastSelectedPathComponent();
+			FileNode fNode = (FileNode) node.getUserObject();
+			File file = fNode.getFile();
+			if (file.canExecute() && file.canRead() && file.canWrite())
+			{
+				try
+				{
+					desktop.open(file);
+				}
+				catch (IOException ex)
+				{
+					System.out.println(ex.toString());
+				}			}
 		}
 	}
 }

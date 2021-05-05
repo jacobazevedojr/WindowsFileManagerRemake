@@ -17,7 +17,6 @@ public class DirPanel extends JPanel{
 	{
 		dirTree = tree;
 		this.setLayout(new BorderLayout());
-		dirTree.setPreferredSize(new Dimension(150, 500));
 		
 		sp.setSize(100, 100);
 		sp.setViewportView(dirTree);

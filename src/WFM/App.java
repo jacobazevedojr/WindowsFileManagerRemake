@@ -1,11 +1,14 @@
 package WFM;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -20,6 +23,10 @@ import javax.swing.event.TreeSelectionListener;
 
 // Test
 public class App extends JFrame {
+	// Cascading Positions
+	int lastX;
+	int lastY;
+	
 	// Panels
 	JPanel panel;
 	JPanel northPanel;
@@ -46,6 +53,9 @@ public class App extends JFrame {
 	
 	public App()
 	{
+		lastX = 0;
+		lastY = 0;
+		
 		// Initializing outermost panel
 		panel = new JPanel();
 		// Initialize top panel
@@ -57,11 +67,17 @@ public class App extends JFrame {
 		// Status
 		statusbar = new JToolBar();
 		
+		// Tool Bar
+		toolbar = new JToolBar();
+		
 		// Desktop
 		desktop = new JDesktopPane();
 		
 		// File Manager Frame
-		myf = new FileManagerFrame("C:\\");
+		// Should create C:\ by default, and additional FileManagerFrames
+		// Will be created through the Toolbar
+		File[] files = File.listRoots();
+		myf = new FileManagerFrame(files[0].toString());
 	}
 	
 	public void go()
@@ -75,7 +91,7 @@ public class App extends JFrame {
 		buildMenu();
 		northPanel.add(menu, BorderLayout.NORTH);
 		buildToolbar();
-		//northPanel.add(toolbar, BorderLayout.SOUTH);
+		northPanel.add(toolbar, BorderLayout.SOUTH);
 		
 		// Desktop
 		panel.add(desktop, BorderLayout.CENTER);
@@ -87,6 +103,7 @@ public class App extends JFrame {
 		
 		// Status Bar
 		buildStatusBar();
+		updateStatusBar(new File("C:\\"));
 		panel.add(statusbar, BorderLayout.SOUTH);
 		
 		// Panel into JFrame
@@ -99,21 +116,67 @@ public class App extends JFrame {
 	}
 	
 	private void buildStatusBar() {
-		JLabel size = new JLabel("Size in GBs: ");
-		statusbar.add(size);
+		// Still need to update depending on the selected directory
+		JLabel drive = new JLabel();
+		JLabel freeSpace = new JLabel();
+		JLabel usedSpace = new JLabel();
+		JLabel totalSpace = new JLabel();
+		
+		statusbar.add(drive);
+		statusbar.addSeparator();
+		statusbar.add(freeSpace);
+		statusbar.addSeparator();
+		statusbar.add(usedSpace);
+		statusbar.addSeparator();
+		statusbar.add(totalSpace);
+	}
+	
+	private void updateStatusBar(File drive)
+	{
+		String driveStr = drive.toString();
+		String free = String.format("%.0f", ((9.3132 * Math.pow(10, -10)) * drive.getFreeSpace()));
+		String used = String.format("%.0f", ((9.3132 * Math.pow(10, -10)) * (drive.getTotalSpace() - drive.getFreeSpace())));
+		String total = String.format("%.0f", ((9.3132 * Math.pow(10, -10)) * drive.getTotalSpace()));
+		
+		((JLabel) statusbar.getComponent(0)).setText("Current Drive: " + driveStr + " ");
+		((JLabel) statusbar.getComponent(2)).setText("Free Space: " + free + " GB ");
+		((JLabel) statusbar.getComponent(4)).setText("Used Space: " + used + " GB ");
+		((JLabel) statusbar.getComponent(6)).setText("Total Space: " + total + " GB");
+		
+		statusbar.repaint();
 	}
 
 	private void buildToolbar() {
-		return;
+		// Buttons
+		JButton details = new JButton("Details");
+		JButton simple = new JButton("Simple");
+		
+		File[] files = File.listRoots();
+		// Drop down
+		JComboBox<File> dropDown = new JComboBox<File>(files);
+		
+		toolbar.addSeparator(new Dimension(150, 0));
+		toolbar.add(dropDown);
+		toolbar.addSeparator();
+		toolbar.add(details);
+		toolbar.addSeparator();
+		toolbar.add(simple);
+		toolbar.addSeparator(new Dimension(150, 0));
+		
+		toolbar.setFloatable(false);
+		toolbar.setRollover(true);
+		
+		dropDown.addActionListener(new DropDownAL());
 	}
 
 	private void buildMenu() {
 		JMenu fileMenu, treeMenu, windowMenu, helpMenu;
-		fileMenu = new JMenu("file");
-		treeMenu = new JMenu("tree");
-		windowMenu = new JMenu("window");
-		helpMenu = new JMenu("help");
+		fileMenu = new JMenu("File");
+		treeMenu = new JMenu("Tree");
+		windowMenu = new JMenu("Window");
+		helpMenu = new JMenu("Help");
 		
+		// JMenu Buttons
 		JMenuItem exit = new JMenuItem("Exit");
 		JMenuItem about = new JMenuItem("About");
 		JMenuItem run = new JMenuItem("Run");
@@ -125,15 +188,32 @@ public class App extends JFrame {
 		run.addActionListener(new RDAL());
 		debug.addActionListener(new RDAL());
 		
+		// Adding buttons
 		fileMenu.add(exit);
 		helpMenu.add(about);
 		treeMenu.add(run);
 		treeMenu.add(debug);
 		
+		// Add drop downs
 		menu.add(fileMenu);
 		menu.add(treeMenu);
 		menu.add(windowMenu);
 		menu.add(helpMenu);
+	}
+	
+	private void openNewFileFrame(File drive)
+	{
+		System.out.println(drive);
+		FileManagerFrame newFrame = new FileManagerFrame(drive.toString());
+		
+		desktop.add(newFrame);
+		
+		// When I close a window, I need to specify where to open the new cascading windows
+		lastX += 30;
+		lastY += 30;
+		
+		newFrame.setLocation(lastX, lastY);
+		desktop.setComponentZOrder(newFrame, 0);
 	}
 
 	private class ExitAL implements ActionListener {	
@@ -169,6 +249,19 @@ public class App extends JFrame {
 			{
 				System.out.println("ERROR");
 			}
+		}
+	}
+	
+	private class DropDownAL implements ActionListener {	
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+	        JComboBox cb = (JComboBox)e.getSource();
+	        File drive = (File) cb.getSelectedItem();
+	        openNewFileFrame(drive);
+	        
+	        // Update statusbar
+	        updateStatusBar(drive);
 		}
 	}
 }

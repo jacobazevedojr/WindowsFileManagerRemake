@@ -42,6 +42,10 @@ public class FileTree{
 		
 		for (File f : files)
 		{
+			if (f.canRead() && f.getName().charAt(0) != '$' && !f.isHidden())
+			{
+				node.getChildren().add(new FileNode(f));
+			}
 			File[] tempFileList = f.listFiles();
 			if(f.isDirectory() && f.canRead() && f.getName().charAt(0) != '$' && !f.isHidden() && tempFileList != null)
 			{
@@ -61,17 +65,12 @@ public class FileTree{
 					{
 						temp.add(new DefaultMutableTreeNode(new FileNode(fTemp)));
 					}
-					// File is not a directory, add to the temp Nodes list of children
-					else if (fTemp.isFile() && fTemp.canExecute() && !fTemp.isHidden() && fTemp.canWrite() && fTemp.canRead())
+					if (fTemp.canRead() && fTemp.getName().charAt(0) != '$' && !fTemp.isHidden())
 					{
 						FileNode tempNode = (FileNode) (temp.getUserObject());
-						tempNode.getChildren().add(new FileNode(fTemp));
+						tempNode.getChildren().add(new FileNode(fTemp));					
 					}
 				}
-			}
-			else if (f.isFile() && f.canExecute() && !f.isHidden() && f.canWrite() && f.canRead())
-			{
-				node.getChildren().add(new FileNode(f));
 			}
 			// For initializing the FileTree
 			//System.out.println(f.getAbsolutePath() 
