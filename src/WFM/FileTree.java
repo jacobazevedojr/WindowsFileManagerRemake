@@ -72,9 +72,6 @@ public class FileTree{
 					}
 				}
 			}
-			// For initializing the FileTree
-			//System.out.println(f.getAbsolutePath() 
-			//		+ " Date: " + formatter.format(f.lastModified()) + " Size: " + dformat.format(f.length()) + " bytes");
 		}
 	}
 }

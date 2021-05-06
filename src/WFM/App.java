@@ -151,6 +151,29 @@ public class App extends JFrame {
 		JButton details = new JButton("Details");
 		JButton simple = new JButton("Simple");
 		
+		details.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				FileManagerFrame fmf = ((FileManagerFrame) desktop.getSelectedFrame());
+				if (fmf != null)
+				{
+					fmf.detailedFormat();
+				}
+			}
+		});
+		
+		simple.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				FileManagerFrame fmf = ((FileManagerFrame) desktop.getSelectedFrame());
+				if (fmf != null)
+				{
+					fmf.simpleFormat();
+				}
+			}
+		});		
 		File[] files = File.listRoots();
 		// Drop down
 		JComboBox<File> dropDown = new JComboBox<File>(files);
@@ -177,6 +200,9 @@ public class App extends JFrame {
 		helpMenu = new JMenu("Help");
 		
 		// JMenu Buttons
+		JMenuItem rename = new JMenuItem("Rename");
+		JMenuItem copy = new JMenuItem("Copy");
+		JMenuItem delete = new JMenuItem("Delete");
 		JMenuItem exit = new JMenuItem("Exit");
 		JMenuItem about = new JMenuItem("About");
 		JMenuItem run = new JMenuItem("Run");
@@ -189,8 +215,13 @@ public class App extends JFrame {
 		debug.addActionListener(new RDAL());
 		
 		// Adding buttons
+		fileMenu.add(rename);
+		fileMenu.add(copy);
+		fileMenu.add(delete);
 		fileMenu.add(exit);
+		
 		helpMenu.add(about);
+		
 		treeMenu.add(run);
 		treeMenu.add(debug);
 		

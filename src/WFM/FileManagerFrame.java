@@ -2,6 +2,7 @@ package WFM;
 
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,6 +19,9 @@ import javax.swing.tree.TreeNode;
 
 public class FileManagerFrame extends JInternalFrame
 {
+	// Specifies whether or not to display simple or detailed
+	private boolean fancy;
+	
 	private JSplitPane splitpane;
 	private FileTree fileTree;
 	private JTree dirTree;
@@ -25,6 +29,9 @@ public class FileManagerFrame extends JInternalFrame
 	private DefaultMutableTreeNode fileRoot;
 	public FileManagerFrame(String root)
 	{
+		// Simple
+		fancy = false;
+		
 		fileTree = new FileTree(root);
 		
 		dirTree = buildTree(fileTree.getRoot());
@@ -34,6 +41,7 @@ public class FileManagerFrame extends JInternalFrame
 		fileRoot = buildFileNodes(fileTree.getRoot());
 		fTree = buildTree(fileRoot);
 		fTree.addTreeSelectionListener(new FileTreeSL());
+		fTree.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 		
 		splitpane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new DirPanel(dirTree), new FilePanel(fTree));
 		splitpane.revalidate();
@@ -52,14 +60,51 @@ public class FileManagerFrame extends JInternalFrame
 	
 	public void simpleFormat()
 	{
-		fileRoot.getChildCount()
-		((FileNode) fileRoot.getUserObject())
-		for 
+		if (fancy)
+		{
+			// Rebuild the tree with "FancyFileNodes" with a diff toString overloading
+			fileRoot = toSimple(fileRoot);
+			fancy = false;
+			updateFileTree();
+		}
 	}
 	
 	public void detailedFormat()
 	{
+		if (!fancy)
+		{
+			// Rebuild the tree with "FancyFileNodes" with a diff toString overloading
+			fileRoot = toDetailed(fileRoot);
+			fancy = true;
+			updateFileTree();
+		}
 		
+	}
+	
+	private DefaultMutableTreeNode toSimple(DefaultMutableTreeNode root)
+	{
+		DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(new FileNode((((FileNode) root.getUserObject())).getFile()));
+		
+		for (int i = 0; i < root.getChildCount(); i++)
+		{
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(i);
+			newRoot.add(new DefaultMutableTreeNode(new FileNode((FancyFileNode) child.getUserObject())));		
+		}
+		
+		return newRoot;
+	}
+	
+	private DefaultMutableTreeNode toDetailed(DefaultMutableTreeNode root)
+	{
+		DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(new FileNode((((FileNode) root.getUserObject())).getFile()));
+		
+		for (int i = 0; i < root.getChildCount(); i++)
+		{
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode) root.getChildAt(i);
+			newRoot.add(new DefaultMutableTreeNode(new FancyFileNode((FileNode) child.getUserObject())));
+		}
+		
+		return newRoot;
 	}
 	
 	private FileManagerFrame getThis()
@@ -81,21 +126,21 @@ public class FileManagerFrame extends JInternalFrame
 	{
 		File f = ((FileNode) leaf.getUserObject()).getFile();
 		
-		DefaultMutableTreeNode fileRoot = new DefaultMutableTreeNode(new FileNode(f));
+		DefaultMutableTreeNode file = new DefaultMutableTreeNode(new FileNode(f));
 		
 		// Add all file children under the selected node
 		ArrayList<FileNode> lst = ((FileNode) leaf.getUserObject()).getChildren();
 		for (int i = 0; i < lst.size(); i++)
 		{
 			DefaultMutableTreeNode temp = new DefaultMutableTreeNode(lst.get(i));
-			fileRoot.add(temp);
+			file.add(temp);
 		}
 		
-		return fileRoot;
+		return file;
 	}
 	
 	
-	private void updateFileTree(DefaultMutableTreeNode fileRoot)
+	private void updateFileTree()
 	{
 		
 		DefaultTreeModel treemodel = new DefaultTreeModel(fileRoot);
@@ -136,8 +181,17 @@ public class FileManagerFrame extends JInternalFrame
 				// Should improve this to store the tree in the FileNode object, but for now, this will work 
 				// (And may be better for memory to only store one tree of fileChildren at a time)
 				
-				DefaultMutableTreeNode newFileNode = buildFileNodes(node);
-				updateFileTree(newFileNode);
+				fileRoot = buildFileNodes(node);
+				
+				if (fancy)
+				{
+					fancy = false;
+					detailedFormat();
+				}
+				else
+				{
+					updateFileTree();
+				}
 				
 				// Update the title of the FileManagerFrame
 				getThis().setTitle(((FileNode) node.getUserObject()).getFile().getAbsolutePath());
@@ -164,7 +218,8 @@ public class FileManagerFrame extends JInternalFrame
 				catch (IOException ex)
 				{
 					System.out.println(ex.toString());
-				}			}
+				}				
+			}
 		}
 	}
 }
