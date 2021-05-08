@@ -1,13 +1,21 @@
 package WFM;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -20,9 +28,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 // Test
 public class App extends JFrame {
@@ -30,6 +42,7 @@ public class App extends JFrame {
 	static DefaultMutableTreeNode lastSelected;
 	static FileManagerFrame lastSelectedFrame;
 	static DefaultMutableTreeNode copied;
+	private static TreePath treePath;
 	
 	// Cascading Positions
 	int lastX;
@@ -52,7 +65,7 @@ public class App extends JFrame {
 	JToolBar statusbar;
 	
 	// Desktop Pane
-	JDesktopPane desktop;
+	private JDesktopPane desktop;
 	
 	// File Manager (Internal Frames)
 	FileManagerFrame myf, myf2;
@@ -79,7 +92,7 @@ public class App extends JFrame {
 		toolbar = new JToolBar();
 		
 		// Desktop
-		desktop = new JDesktopPane();
+		setDesktop(new JDesktopPane());
 		
 		// File Manager Frame
 		// Should create C:\ by default, and additional FileManagerFrames
@@ -90,6 +103,7 @@ public class App extends JFrame {
 	
 	public void go()
 	{
+
 		this.setTitle("CECS 277 File Manager");
 		// Layouts
 		panel.setLayout(new BorderLayout());
@@ -102,10 +116,10 @@ public class App extends JFrame {
 		northPanel.add(toolbar, BorderLayout.SOUTH);
 		
 		// Desktop
-		panel.add(desktop, BorderLayout.CENTER);
+		panel.add(getDesktop(), BorderLayout.CENTER);
 		
 		// Internal Frames
-		desktop.add(myf);
+		getDesktop().add(myf);
 		
 		panel.add(northPanel, BorderLayout.NORTH);
 		
@@ -180,7 +194,6 @@ public class App extends JFrame {
 	
 	public static void paste(String location)
 	{
-		System.out.println(copied);
 		File file = ((FileNode) copied.getUserObject()).getFile();
 		String newName = location;
 		
@@ -192,8 +205,6 @@ public class App extends JFrame {
 		newName += file.getName();
 		
 		File newFile = new File(newName);
-		System.out.println(file.toPath());
-		System.out.println(newFile.toPath());
 
 		try {
 			Files.copy(file.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -201,7 +212,6 @@ public class App extends JFrame {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("Paste Success");
 		App.updateTree(App.getSelectedFrame(), App.getLastSelected(), null, "Paste");
 	}
 	
@@ -250,7 +260,7 @@ public class App extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				FileManagerFrame fmf = ((FileManagerFrame) desktop.getSelectedFrame());
+				FileManagerFrame fmf = ((FileManagerFrame) getDesktop().getSelectedFrame());
 				if (fmf != null)
 				{
 					fmf.detailedFormat();
@@ -262,7 +272,7 @@ public class App extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				FileManagerFrame fmf = ((FileManagerFrame) desktop.getSelectedFrame());
+				FileManagerFrame fmf = ((FileManagerFrame) getDesktop().getSelectedFrame());
 				if (fmf != null)
 				{
 					fmf.simpleFormat();
@@ -284,7 +294,6 @@ public class App extends JFrame {
 		toolbar.setFloatable(false);
 		toolbar.setRollover(true);
 		
-		dropDown.addActionListener(new DropDownAL());
 	}
 
 	private void buildMenu() {
@@ -301,13 +310,56 @@ public class App extends JFrame {
 		JMenuItem exit = new JMenuItem("Exit");
 		JMenuItem about = new JMenuItem("About");
 		JMenuItem run = new JMenuItem("Run");
-		JMenuItem debug = new JMenuItem("Debug");
+		JMenuItem expand = new JMenuItem("Expand");
+		JMenuItem collapse = new JMenuItem("Collapse");
+		JMenuItem newWin = new JMenuItem("New");
+		JMenuItem cascade = new JMenuItem("Cascade");
 		
 		// Action Listeners
 		exit.addActionListener(new ExitAL());
 		about.addActionListener(new AboutAL());
-		run.addActionListener(new RDAL());
-		debug.addActionListener(new RDAL());
+		
+		newWin.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox) toolbar.getComponent(1);
+		        File drive = (File) cb.getSelectedItem();
+		        openNewFileFrame(drive);
+		        
+		        // Update statusbar
+		        updateStatusBar(drive);
+			}
+		});
+		
+		cascade.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox) toolbar.getComponent(1);
+		        File drive = (File) cb.getSelectedItem();
+		        openNewFileFrameCascade(drive);
+		        
+		        // Update statusbar
+		        updateStatusBar(drive);
+			}
+		});
+		
+		run.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Desktop desktop = Desktop.getDesktop();
+				File file = ((FileNode) lastSelected.getUserObject()).getFile();
+				
+				try {
+					desktop.open(file);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+
 		
 		delete.addActionListener(new ActionListener() {
 			@Override
@@ -333,16 +385,38 @@ public class App extends JFrame {
 			}
 		});
 		
+		expand.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				JTree tree = lastSelectedFrame.getDirTree();
+				tree.expandPath(treePath);
+			}
+		});
+		
+		collapse.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				JTree tree = lastSelectedFrame.getDirTree();
+				tree.collapsePath(treePath);
+			}
+		});
+		
 		// Adding buttons
 		fileMenu.add(rename);
 		fileMenu.add(copy);
 		fileMenu.add(delete);
+		fileMenu.add(run);
 		fileMenu.add(exit);
 		
 		helpMenu.add(about);
 		
-		treeMenu.add(run);
-		treeMenu.add(debug);
+		treeMenu.add(expand);
+		treeMenu.add(collapse);
+		
+		windowMenu.add(newWin);
+		windowMenu.add(cascade);
 		
 		// Add drop downs
 		menu.add(fileMenu);
@@ -351,19 +425,31 @@ public class App extends JFrame {
 		menu.add(helpMenu);
 	}
 	
-	private void openNewFileFrame(File drive)
+	private void openNewFileFrameCascade(File drive)
 	{
-		System.out.println(drive);
 		FileManagerFrame newFrame = new FileManagerFrame(drive.toString());
 		
-		desktop.add(newFrame);
+		getDesktop().add(newFrame);
 		
 		// When I close a window, I need to specify where to open the new cascading windows
 		lastX += 30;
 		lastY += 30;
 		
 		newFrame.setLocation(lastX, lastY);
-		desktop.setComponentZOrder(newFrame, 0);
+		getDesktop().setComponentZOrder(newFrame, 0);
+	}
+	
+	private void openNewFileFrame(File drive)
+	{
+		FileManagerFrame newFrame = new FileManagerFrame(drive.toString());
+		
+		getDesktop().add(newFrame);
+		
+		lastX = 0;
+		lastY = 0;
+		
+		newFrame.setLocation(lastX, lastY);
+		getDesktop().setComponentZOrder(newFrame, 0);
 	}
 
 	private class ExitAL implements ActionListener {	
@@ -401,22 +487,21 @@ public class App extends JFrame {
 			}
 		}
 	}
-	
-	private class DropDownAL implements ActionListener {	
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-	        JComboBox cb = (JComboBox)e.getSource();
-	        File drive = (File) cb.getSelectedItem();
-	        openNewFileFrame(drive);
-	        
-	        // Update statusbar
-	        updateStatusBar(drive);
-		}
-	}
 
 	public static void setCopied(DefaultMutableTreeNode node) {
 		copied = node;
+	}
+
+	public JDesktopPane getDesktop() {
+		return desktop;
+	}
+
+	public void setDesktop(JDesktopPane desktop) {
+		this.desktop = desktop;
+	}
+
+	public static void setDirPath(TreePath path) {
+		treePath = path;
 	}
 }
 

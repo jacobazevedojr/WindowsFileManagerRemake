@@ -7,6 +7,7 @@ import java.awt.FlowLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 public class DirPanel extends JPanel{
 	private JScrollPane sp = new JScrollPane();
@@ -15,6 +16,9 @@ public class DirPanel extends JPanel{
 	
 	DirPanel(JTree tree)
 	{
+        DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) dirTree.getCellRenderer();
+        renderer.setLeafIcon(renderer.getClosedIcon());
+        
 		dirTree = tree;
 		this.setLayout(new BorderLayout());
 		

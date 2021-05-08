@@ -3,6 +3,10 @@ package WFM;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -11,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
@@ -25,7 +30,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-
 public class FileManagerFrame extends JInternalFrame
 {
 	// Specifies whether or not to display simple or detailed
@@ -38,6 +42,8 @@ public class FileManagerFrame extends JInternalFrame
 	private DefaultMutableTreeNode fileRoot;
 	public FileManagerFrame(String root)
 	{
+		this.setDropTarget(new MyDropTarget());
+
 		// Simple
 		fancy = false;
 		
@@ -147,7 +153,7 @@ public class FileManagerFrame extends JInternalFrame
 		});
 		
 		fTree.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-		fTree.setToggleClickCount(2);
+		fTree.setToggleClickCount(500);
 		
 		splitpane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, new DirPanel(dirTree), new FilePanel(fTree));
 		splitpane.revalidate();
@@ -162,6 +168,11 @@ public class FileManagerFrame extends JInternalFrame
 		
 		// Adding SplitPane
 		this.getContentPane().add(splitpane);
+	}
+	
+	public JTree getFileTree()
+	{
+		return fTree;
 	}
 	
 	public void simpleFormat()
@@ -242,6 +253,10 @@ public class FileManagerFrame extends JInternalFrame
 			{
 				DefaultMutableTreeNode temp = new DefaultMutableTreeNode(new FileNode(lst[i]));
 				file.add(temp);
+				if (fi.isDirectory())
+				{
+					temp.add(new DefaultMutableTreeNode());
+				}
 			}
 		}
 		
@@ -262,6 +277,8 @@ public class FileManagerFrame extends JInternalFrame
 		File ls = ((FileNode) nd.getUserObject()).getFile();
 		if (ls.isDirectory())
 		{
+			System.out.println("Here");
+
 			// Need to update the FileTree and
 			if (op == "Delete")
 			{
@@ -340,6 +357,10 @@ public class FileManagerFrame extends JInternalFrame
 		{
 			// Is a file (only operate on fTree), simply update
 			DefaultMutableTreeNode root = (DefaultMutableTreeNode) nd.getParent();
+			if(nd.getParent() == null)
+			{
+				root = (DefaultMutableTreeNode) nd;
+			}
 
 			fileRoot = buildFileNodes(root);
 			
@@ -365,6 +386,8 @@ public class FileManagerFrame extends JInternalFrame
 			
 			// Returns the object stored in the selected node
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) dirTree.getLastSelectedPathComponent();
+			App.setDirPath(dirTree.getSelectionPath());
+			App.setSelectedFrame(getThis());
 			
 			// If any nodes under the selected node are not explored
 			if (node != null)
@@ -404,5 +427,64 @@ public class FileManagerFrame extends JInternalFrame
 				getThis().setTitle(((FileNode) node.getUserObject()).getFile().getAbsolutePath());
 			}
 		}
+	}
+	
+	class MyDropTarget extends DropTarget {
+		@Override
+		public void drop(DropTargetDropEvent e)
+		{
+			try
+			{
+				e.acceptDrop(DnDConstants.ACTION_COPY);
+				
+				DefaultTreeModel model = (DefaultTreeModel) getThis().fTree.getModel();
+				
+				String location = ((FileNode) ((DefaultMutableTreeNode) model.getRoot()).getUserObject()).getFile().getAbsolutePath();
+				if (location.charAt(location.length() - 1) != '\\')
+				{
+					location += "\\";
+				}
+				DefaultMutableTreeNode node = ((DefaultMutableTreeNode) model.getRoot()).getFirstLeaf();
+				App.setLastSelected(node);
+				// So we know what FileManagerFrame to update
+				App.setSelectedFrame(getThis());
+				
+				if (e.getTransferable().isDataFlavorSupported(DataFlavor.stringFlavor))
+				{
+					System.out.println("1");
+					String t = (String) e.getTransferable().getTransferData(DataFlavor.stringFlavor);
+					
+					String[] next = t.split("\\n");
+					
+					for(int i = 0; i < next.length; i++)
+					{
+						File f = new File(next[i]);
+						App.setCopied(new DefaultMutableTreeNode(new FileNode(f)));
+						App.paste(location + next[i]);
+					}
+				}
+				else
+				{
+					System.out.println("2");
+
+					List result = new ArrayList();
+					result = (List) e.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+					
+					for (Object o : result)
+					{
+						File f = new File(o.toString());
+						App.setCopied(new DefaultMutableTreeNode(new FileNode(f)));
+						App.paste(location);
+					}
+				}
+			}
+			catch(Exception ex)
+			{
+			}
+		}
+	}
+
+	public JTree getDirTree() {
+		return dirTree;
 	}
 }

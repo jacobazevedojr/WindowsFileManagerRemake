@@ -6,6 +6,7 @@ import java.awt.FlowLayout;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -19,6 +20,9 @@ public class FilePanel extends JPanel{
 	FilePanel(JTree fTree)
 	{
 		fileTree = fTree;
+		
+        DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) fileTree.getCellRenderer();
+        
 		this.setLayout(new BorderLayout());
 		sp.setViewportView(fileTree);
 		this.add(sp, BorderLayout.CENTER);
