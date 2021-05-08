@@ -26,6 +26,6 @@ public class FancyFileNode extends FileNode {
 		String date = formatter.format(f.lastModified());
 		String size = dformat.format(f.length());
 		
-		return String.format("%-30s  %10s  %15s bytes", name, date, size);
+		return String.format("%-50s  %10s  %15s bytes", name, date, size);
 	}
 }

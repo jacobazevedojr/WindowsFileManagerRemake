@@ -42,10 +42,6 @@ public class FileTree{
 		
 		for (File f : files)
 		{
-			if (f.canRead() && f.getName().charAt(0) != '$' && !f.isHidden())
-			{
-				node.getChildren().add(new FileNode(f));
-			}
 			File[] tempFileList = f.listFiles();
 			if(f.isDirectory() && f.canRead() && f.getName().charAt(0) != '$' && !f.isHidden() && tempFileList != null)
 			{
@@ -64,11 +60,6 @@ public class FileTree{
 					if (fTemp.isDirectory() && fTemp.canRead() && fTemp.getName().charAt(0) != '$' && !fTemp.isHidden())
 					{
 						temp.add(new DefaultMutableTreeNode(new FileNode(fTemp)));
-					}
-					if (fTemp.canRead() && fTemp.getName().charAt(0) != '$' && !fTemp.isHidden())
-					{
-						FileNode tempNode = (FileNode) (temp.getUserObject());
-						tempNode.getChildren().add(new FileNode(fTemp));					
 					}
 				}
 			}

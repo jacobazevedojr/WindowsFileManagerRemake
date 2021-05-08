@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -20,9 +22,15 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 // Test
 public class App extends JFrame {
+	// For copy and paste
+	static DefaultMutableTreeNode lastSelected;
+	static FileManagerFrame lastSelectedFrame;
+	static DefaultMutableTreeNode copied;
+	
 	// Cascading Positions
 	int lastX;
 	int lastY;
@@ -113,6 +121,93 @@ public class App extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setVisible(true);
 		this.setSize(700, 500);
+	}
+	
+	public static void setLastSelected(DefaultMutableTreeNode f)
+	{
+		lastSelected = f;
+	}
+	
+	public static DefaultMutableTreeNode getLastSelected()
+	{
+		return lastSelected;
+	}
+	
+	public static void setSelectedFrame(FileManagerFrame f)
+	{
+		lastSelectedFrame = f;
+	}
+	
+	public static FileManagerFrame getSelectedFrame()
+	{
+		return lastSelectedFrame;
+	}
+	
+	public static void rename()
+	{
+		if (lastSelected != null)
+		{
+			File ls = ((FileNode)lastSelected.getUserObject()).getFile();
+			String path = ls.getParent();
+			
+			dataDlg dlg = new dataDlg("Rename", path, ls.getName(), ls);
+			dlg.setVisible(true);
+		}
+	}
+	
+	public static void delete()
+	{
+		if (lastSelected != null)
+		{
+			File ls = ((FileNode)lastSelected.getUserObject()).getFile();
+			
+			dltDlg dlg = new dltDlg(ls);
+			dlg.setVisible(true);
+		}
+	}
+	
+	public void copy()
+	{
+		if (lastSelected != null)
+		{
+			File ls = ((FileNode)lastSelected.getUserObject()).getFile();
+			String path = ls.getParent();
+			
+			dataDlg dlg = new dataDlg("Copy", path, ls.getName(), ls);
+			dlg.setVisible(true);
+		}
+	}
+	
+	public static void paste(String location)
+	{
+		System.out.println(copied);
+		File file = ((FileNode) copied.getUserObject()).getFile();
+		String newName = location;
+		
+		if(newName.charAt(newName.length() - 1) != '\\')
+		{
+			newName += "\\";
+		}
+		
+		newName += file.getName();
+		
+		File newFile = new File(newName);
+		System.out.println(file.toPath());
+		System.out.println(newFile.toPath());
+
+		try {
+			Files.copy(file.toPath(), newFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		System.out.println("Paste Success");
+		App.updateTree(App.getSelectedFrame(), App.getLastSelected(), null, "Paste");
+	}
+	
+	public static void updateTree(FileManagerFrame frame, DefaultMutableTreeNode node, DefaultMutableTreeNode newNode, String op)
+	{	
+		frame.updateAfterNodeChanges(node, newNode, op);
 	}
 	
 	private void buildStatusBar() {
@@ -214,6 +309,30 @@ public class App extends JFrame {
 		run.addActionListener(new RDAL());
 		debug.addActionListener(new RDAL());
 		
+		delete.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				delete();
+			}
+		});
+		
+		rename.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				rename();
+			}
+		});
+		
+		copy.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				copy();
+			}
+		});
+		
 		// Adding buttons
 		fileMenu.add(rename);
 		fileMenu.add(copy);
@@ -294,6 +413,10 @@ public class App extends JFrame {
 	        // Update statusbar
 	        updateStatusBar(drive);
 		}
+	}
+
+	public static void setCopied(DefaultMutableTreeNode node) {
+		copied = node;
 	}
 }
 

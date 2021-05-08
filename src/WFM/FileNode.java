@@ -5,30 +5,22 @@ import java.util.ArrayList;
 
 public class FileNode {
 	private File file;
-	protected ArrayList<FileNode> fileChildren;
 	private boolean explored;
 	FileNode(File f)
 	{
 		file = f;
-		fileChildren = new ArrayList<FileNode>();
 		explored = false;
 	}
 	
 	FileNode(FancyFileNode f)
 	{
 		file = f.getFile();
-		fileChildren = new ArrayList<FileNode>();
 		explored = false;
 	}
 	
 	public File getFile()
 	{
 		return file;
-	}
-	
-	public ArrayList<FileNode> getChildren()
-	{
-		return fileChildren;
 	}
 	
 	@Override
